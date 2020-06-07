@@ -81,14 +81,23 @@ void Executive::run()
 void Executive::ap_task_request()
 {
 	// set ap_task to start at the begginig of the next frame
+	// requesting ap_task multiple times per frames still counts as one request
 	{
 		std::unique_lock<std::mutex> l(ap_task.mutex);
 
-		ap_scheduled = true;
+		if(!ap_scheduled)
+		{
+			ap_scheduled = true;
+			std::cout << "Requested ap_task" << std::endl;
+		}
+		else
+		{
+			std::cout << "ap_task was already requested this frame" << std::endl;
+		}
 	}
 }
 
-void Executive::task_function(Executive::task_data &task)
+void Executive::task_function(Executive::task_data & task)
 {
 
 	while(true)
@@ -117,7 +126,8 @@ void Executive::exec_function()
 
 	auto frame_deadline_time = start_time;
 
-	for(int t = 0;/* t < 10*/; t++)
+	//for(int t = 0;/* t < 10*/; t++)
+	for(int t = 0; t < 10; t++)
 	// while (true)
 	{
 
@@ -149,6 +159,8 @@ void Executive::exec_function()
 					// Notify
 					task.cond.notify_one();
 				}
+
+				// std::cout << "Scheduling task_" << task_id << std::endl;
 			}
 			else
 			{
@@ -198,8 +210,9 @@ void Executive::exec_function()
 				// policy: let this taks running and skip
 				// next executions until task completes
 
-				// raise priority so next tasks could
-				// we could change priority for this task
+				// lower priority to not disturb other tasks
+				rt::set_priority(task.thread, rt::priority::rt_max - 2 - p_tasks.size());
+				// this is the lowest priority
 			}
 		}
 
@@ -207,5 +220,3 @@ void Executive::exec_function()
 			frame_id = 0;
 	}
 }
-
-

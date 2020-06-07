@@ -2,7 +2,7 @@
 #include "executive.h"
 #include "busy_wait.h"
 
-#define UNIT_DURATION 500
+#define UNIT_DURATION 10
 
 #define TASK_0_DURATION 1	// tau_1
 #define TASK_1_DURATION 2	// tau_2
@@ -13,8 +13,8 @@
 #define TASK_AP_DURATION 1	// tau_ap
 
 
-// todo last argument added to slow down execution for debug
 Executive exec(5, 4, UNIT_DURATION);
+
 
 void task0()
 {
@@ -22,8 +22,6 @@ void task0()
 	busy_wait(TASK_0_DURATION * UNIT_DURATION);
 	std::cout << "task_0 done" << std::endl;
 }
-
-bool pair = true;
 
 void task1()
 {
@@ -44,13 +42,7 @@ void task3()
 	std::cout << "task_3 start" << std::endl;
 	busy_wait(TASK_3_DURATION * UNIT_DURATION / 2);
 
-	// Requesting ap_task
-	if(pair || true)
-	{
-		exec.ap_task_request();
-		std::cout << "Requesting ap_task" << std::endl;
-	}
-	pair = !pair;
+	exec.ap_task_request();
 
 	busy_wait(TASK_3_DURATION * UNIT_DURATION / 2);
 	std::cout << "task_3 done" << std::endl;
@@ -66,7 +58,7 @@ void task4()
 void ap_task()
 {
 	std::cout << "task_ap start" << std::endl;	
-	busy_wait(TASK_AP_DURATION * UNIT_DURATION * 3);
+	busy_wait(TASK_AP_DURATION * UNIT_DURATION);
 	std::cout << "task_ap done" << std::endl;
 }
 
