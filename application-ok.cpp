@@ -2,9 +2,9 @@
 #include "executive.h"
 #include "busy_wait.h"
 
-#define UNIT_DURATION 1000
+#define UNIT_DURATION 500
 
-#define TASK_0_DURATION 1 	// tau_1
+#define TASK_0_DURATION 1	// tau_1
 #define TASK_1_DURATION 2	// tau_2
 #define TASK_2_DURATION 1	// tau_3,1	
 #define TASK_3_DURATION 3	// tau_3,2
@@ -27,15 +27,8 @@ bool pair = true;
 
 void task1()
 {
-	std::cout << "task_1 start" << std::endl;
-	busy_wait(TASK_1_DURATION * UNIT_DURATION / 2);
-	
-	// Requesting ap_task
-	// if(pair)
-	exec.ap_task_request();
-	pair = !pair;
-
-	busy_wait(TASK_1_DURATION * UNIT_DURATION / 2);
+	std::cout << "task_1 start" << std::endl;	
+	busy_wait(TASK_1_DURATION * UNIT_DURATION);
 	std::cout << "task_1 done" << std::endl;
 }
 
@@ -49,7 +42,17 @@ void task2()
 void task3()
 {
 	std::cout << "task_3 start" << std::endl;
-	busy_wait(TASK_3_DURATION * UNIT_DURATION);
+	busy_wait(TASK_3_DURATION * UNIT_DURATION / 2);
+
+	// Requesting ap_task
+	if(pair || true)
+	{
+		exec.ap_task_request();
+		std::cout << "Requesting ap_task" << std::endl;
+	}
+	pair = !pair;
+
+	busy_wait(TASK_3_DURATION * UNIT_DURATION / 2);
 	std::cout << "task_3 done" << std::endl;
 }
 
@@ -63,7 +66,7 @@ void task4()
 void ap_task()
 {
 	std::cout << "task_ap start" << std::endl;	
-	busy_wait(TASK_AP_DURATION * UNIT_DURATION);
+	busy_wait(TASK_AP_DURATION * UNIT_DURATION * 3);
 	std::cout << "task_ap done" << std::endl;
 }
 

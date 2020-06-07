@@ -46,6 +46,7 @@ void Executive::run()
 		// Set affinity for p_tasks
 		rt::set_affinity(p_tasks[id].thread, rt::affinity(0));
 
+		p_tasks[id].status = task_data::IDLE;
 	}
 	
 	assert(ap_task.function); // Fallisce se set_aperiodic_task() non e' stato invocato
@@ -55,14 +56,24 @@ void Executive::run()
 	// Set ap_task priority to lowest among all p_tasks
 	rt::set_priority(ap_task.thread, rt::priority::rt_max - 1 - p_tasks.size());
 
+	// Set affinity for ap_task
+	rt::set_affinity(ap_task.thread, rt::affinity(0));
+
+	// Set status for ap_task
+	ap_task.status = task_data::IDLE;
+
 	std::thread exec_thread(&Executive::exec_function, this);
 	
-	/* ... */
-	
-	exec_thread.join();
-	
+	// Set max priority for exec_thread
+	rt::set_priority(exec_thread, rt::priority::rt_max);
+
+	// Set affinity for exec_task
+	rt::set_affinity(exec_thread, rt::affinity(0));
+
+
+	// Wait for other threads
+	exec_thread.join();	
 	ap_task.thread.join();
-	
 	for (auto & pt: p_tasks)
 		pt.thread.join();
 }
@@ -77,20 +88,21 @@ void Executive::ap_task_request()
 	}
 }
 
-void Executive::task_function(Executive::task_data & task)
+void Executive::task_function(Executive::task_data &task)
 {
-
-	task.status = task_data::IDLE;
 
 	while(true)
 	{
 		{
 			std::unique_lock<std::mutex> l(task.mutex);
-			task.cond.wait(l);
+			
+			while(task.status != task_data::PENDING)
+				task.cond.wait(l);
+
 		}
 
 		task.status = task_data::RUNNING;
-		
+
 		task.function();
 
 		task.status = task_data::IDLE;
@@ -100,9 +112,6 @@ void Executive::task_function(Executive::task_data & task)
 void Executive::exec_function()
 {
 	size_t frame_id = 0;
-
-	// Set max priority to this thread
-	rt::this_thread::set_priority(rt::priority::rt_max);
 
 	auto start_time = std::chrono::steady_clock::now();
 
@@ -143,9 +152,9 @@ void Executive::exec_function()
 			}
 			else
 			{
-				// A deadline was missed the last frame
-				// policy: skip the execution in this frame
-				// do not raise error here
+				// A deadline was missed for this task
+				// policy: skip next executions until task completes
+				std::cout << "!! Skipping exec for task_" << task_id << std::endl;
 			}
 		}
 		
@@ -162,9 +171,11 @@ void Executive::exec_function()
 				}
 				else
 				{
-					// Deadline miss for ap_task
+					// A deadline was missed for ap_task
 					std::cout << "!! Deadline miss for ap_task !!" << std::endl;
-					// policy: skip this execution
+					std::cout << "!! Skipping exec for ap_task !!" << std::endl;
+					// policy: let ap_task keep running and skip
+					// next executions until ap_task completes
 				}
 			}
 		}
@@ -182,9 +193,12 @@ void Executive::exec_function()
 			// Check status
 			if(task.status != task_data::IDLE)
 			{
-				// Handle deadline miss
+				// Deadline miss
 				std::cout << " !! Deadline miss for task " << task_id << " !!" << std::endl;
-				
+				// policy: let this taks running and skip
+				// next executions until task completes
+
+				// raise priority so next tasks could
 				// we could change priority for this task
 			}
 		}
