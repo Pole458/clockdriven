@@ -2,7 +2,7 @@
 #include "executive.h"
 #include "busy_wait.h"
 
-#define UNIT_DURATION 10
+#define UNIT_DURATION 1000
 
 #define TASK_0_DURATION 1	// tau_1
 #define TASK_1_DURATION 2	// tau_2
@@ -58,7 +58,7 @@ void task4()
 void ap_task()
 {
 	std::cout << "task_ap start" << std::endl;	
-	busy_wait(TASK_AP_DURATION * UNIT_DURATION);
+	busy_wait(TASK_AP_DURATION * UNIT_DURATION * 2);
 	std::cout << "task_ap done" << std::endl;
 }
 

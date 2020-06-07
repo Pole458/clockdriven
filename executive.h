@@ -57,18 +57,18 @@ class Executive
 			enum task_status {IDLE, PENDING, RUNNING};
 
 			task_status status;
-
 		};
 		
 		std::vector<task_data> p_tasks;
 		task_data ap_task;
 		
 		std::vector<std::vector<size_t>> frames;
-		
-		
+	
 		const unsigned int frame_length; // lunghezza del frame (in quanti temporali)
 		const std::chrono::milliseconds unit_time; // durata dell'unita di tempo (quanto temporale)
 		
+		std::vector<unsigned int> frames_slack; // slack avaiable for each frame
+
 		bool ap_scheduled = false;
 		
 		static void task_function(task_data & task);
