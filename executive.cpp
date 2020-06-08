@@ -63,7 +63,7 @@ void Executive::run()
 	
 	
 	ap_task.thread = std::thread(&Executive::task_function, std::ref(ap_task));
-	// Set ap_task priority to be always lower then any p_task
+	// Set ap_task priority to be lower than any p_task (second lowest priority)
 	rt::set_priority(ap_task.thread, rt::priority::rt_max - 1 - p_tasks.size() - 1);
 	// Set affinity for ap_task
 	rt::set_affinity(ap_task.thread, rt::affinity(0));
@@ -72,7 +72,7 @@ void Executive::run()
 
 
 	std::thread exec_thread(&Executive::exec_function, this);
-	// Set max priority for exec_thread
+	// Set max priority for exec_thread (highest priority)
 	rt::set_priority(exec_thread, rt::priority::rt_max);
 	// Set affinity for exec_task
 	rt::set_affinity(exec_thread, rt::affinity(0));
@@ -104,7 +104,7 @@ void Executive::ap_task_request()
 	}
 }
 
-void Executive::task_function(Executive::task_data & task)
+void Executive::task_function(Executive::task_data &task)
 {
 
 	while(true)
@@ -129,13 +129,9 @@ void Executive::exec_function()
 {
 	size_t frame_id = 0;
 
-	auto start_time = std::chrono::steady_clock::now();
+	auto frame_deadline = std::chrono::steady_clock::now();
 
-	auto frame_deadline_time = start_time;
-
-	//for(int t = 0;/* t < 10*/; t++)
-	for(int t = 0; t < 10; t++)
-	// while (true)
+	for(int t = 0;/* t < 10*/; t++)
 	{
 		auto current_frame = frames[frame_id];
 
@@ -151,7 +147,7 @@ void Executive::exec_function()
 
 			if(task.status == task_data::IDLE)
 			{
-				// Set priority to be lower then exec_thread and ap_task when slack stealing
+				// Set priority to be lower than exec_thread and ap_task when slack stealing (normal priority)
 				rt::set_priority(task.thread, rt::priority::rt_max - 1 - 1 - i);
 				
 				{
@@ -164,7 +160,7 @@ void Executive::exec_function()
 					task.cond.notify_one();
 				}
 
-				// std::cout << "Scheduling task_" << task_id << std::endl;
+				// std::cout << "Scheduled task_" << task_id << std::endl;
 			}
 			else
 			{
@@ -197,19 +193,19 @@ void Executive::exec_function()
 		{	
 			std::cout << "Slack stealing: " << frames_slack[frame_id] << " units" << std::endl;
 
-			// Set ap_task priority to second highest
+			// Set ap_task priority to be higher than any p_ask (second highest priority)
 			rt::set_priority(ap_task.thread, rt::priority::rt_max - 1);
 
-			auto slack_stealing_deadline = frame_deadline_time + std::chrono::milliseconds(frames_slack[frame_id] * unit_time);
+			auto slack_stealing_deadline = frame_deadline + std::chrono::milliseconds(frames_slack[frame_id] * unit_time);
 			std::this_thread::sleep_until(slack_stealing_deadline);
 	
-			// Set ap_task priority to be always lower then any p_task
+			// Set ap_task priority to be lower than any p_task (second lowest priority)
 			rt::set_priority(ap_task.thread, rt::priority::rt_max - 1 - p_tasks.size() - 1);
 		}
 	
 		/* Attesa fino al prossimo inizio frame ... */
-		frame_deadline_time += std::chrono::milliseconds(frame_length * unit_time);
-		std::this_thread::sleep_until(frame_deadline_time);
+		frame_deadline += std::chrono::milliseconds(frame_length * unit_time);
+		std::this_thread::sleep_until(frame_deadline);
 
 		/* Controllo delle deadline ... */
 		for(size_t i = 0; i < current_frame.size(); i++)
@@ -222,12 +218,11 @@ void Executive::exec_function()
 			{
 				// Deadline miss
 				std::cout << " !! Deadline miss for task " << task_id << " !!" << std::endl;
-				// policy: let this taks running and skip
+				// policy: let this task keep runnig and skip
 				// next executions until task completes
 
-				// lower priority to not disturb other tasks
+				// set task priority to lowest to not disturb other tasks (lowest priority)
 				rt::set_priority(task.thread, rt::priority::rt_max - 1 - p_tasks.size() - 1 - 1);
-				// this is the lowest priority
 			}
 		}
 

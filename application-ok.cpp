@@ -58,7 +58,7 @@ void task4()
 void ap_task()
 {
 	std::cout << "task_ap start" << std::endl;	
-	busy_wait(TASK_AP_DURATION * UNIT_DURATION * 2);
+	busy_wait(TASK_AP_DURATION * UNIT_DURATION);
 	std::cout << "task_ap done" << std::endl;
 }
 
