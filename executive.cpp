@@ -4,9 +4,7 @@
 #include "rt/affinity.h"
 #include "executive.h"
 
-// Consegna 9/6, SORT4
-
-
+// Luca Caldeirni 314300, Paolo D'Alessandro 313950
 
 Executive::Executive(size_t num_tasks, unsigned int frame_length, unsigned int unit_duration)
 	: p_tasks(num_tasks), frame_length(frame_length), unit_time(unit_duration)

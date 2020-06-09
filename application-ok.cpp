@@ -2,11 +2,13 @@
 #include "executive.h"
 #include "busy_wait.h"
 
-//used to change unit duration of executive and tasks
+// Luca Caldeirni 314300, Paolo D'Alessandro 313950
+
+// Used to change unit duration of executive and tasks
 #define UNIT_DURATION 10
 
-//used to reduce the duration of the busy_wait to avoid deadline miss
-#define TASK_DURATION 0.9
+// Used to reduce the duration of the busy_wait to avoid deadline miss
+#define TASK_DURATION 0.8
 
 #define TASK_0_DURATION 1	// tau_1
 #define TASK_1_DURATION 2	// tau_2
