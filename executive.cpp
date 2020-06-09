@@ -6,6 +6,8 @@
 
 // Consegna 9/6, SORT4
 
+
+
 Executive::Executive(size_t num_tasks, unsigned int frame_length, unsigned int unit_duration)
 	: p_tasks(num_tasks), frame_length(frame_length), unit_time(unit_duration)
 {
@@ -47,6 +49,9 @@ void Executive::add_frame(std::vector<size_t> frame)
 
 void Executive::run()
 {
+    rt::affinity aff;
+    aff.set(0);
+    
 	for (size_t id = 0; id < p_tasks.size(); ++id)
 	{
 		assert(p_tasks[id].function); // Fallisce se set_periodic_task() non e' stato invocato per questo id
@@ -54,7 +59,7 @@ void Executive::run()
 		p_tasks[id].thread = std::thread(&Executive::task_function, std::ref(p_tasks[id]));
 		
 		// Set affinity for p_tasks
-		rt::set_affinity(p_tasks[id].thread, rt::affinity(0));
+		rt::set_affinity(p_tasks[id].thread, aff);
 
 		p_tasks[id].status = task_data::IDLE;
 	}
@@ -66,7 +71,7 @@ void Executive::run()
 	// Set ap_task priority to be lower than any p_task (second lowest priority)
 	rt::set_priority(ap_task.thread, rt::priority::rt_max - 1 - p_tasks.size() - 1);
 	// Set affinity for ap_task
-	rt::set_affinity(ap_task.thread, rt::affinity(0));
+	rt::set_affinity(ap_task.thread, aff);
 	// Set status for ap_task
 	ap_task.status = task_data::IDLE;
 
@@ -75,7 +80,7 @@ void Executive::run()
 	// Set max priority for exec_thread (highest priority)
 	rt::set_priority(exec_thread, rt::priority::rt_max);
 	// Set affinity for exec_task
-	rt::set_affinity(exec_thread, rt::affinity(0));
+	rt::set_affinity(exec_thread, aff);
 
 
 	// Wait for other threads

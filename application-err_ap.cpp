@@ -2,7 +2,11 @@
 #include "executive.h"
 #include "busy_wait.h"
 
+//used to change unit duration of executive and tasks
 #define UNIT_DURATION 500
+
+//used to reduce the duration of the busy_wait to avoid deadline miss
+#define TASK_DURATION 0.9
 
 #define TASK_0_DURATION 1	// tau_1
 #define TASK_1_DURATION 2	// tau_2
@@ -21,39 +25,39 @@ Executive exec(5, 4, UNIT_DURATION);
 void task0()
 {
 	std::cout << "task_0 start" << std::endl;
-	busy_wait(TASK_0_DURATION * UNIT_DURATION);
+	busy_wait(TASK_0_DURATION * UNIT_DURATION * TASK_DURATION);
 	std::cout << "task_0 done" << std::endl;
 }
 
 void task1()
 {
 	std::cout << "task_1 start" << std::endl;	
-	busy_wait(TASK_1_DURATION * UNIT_DURATION);
+	busy_wait(TASK_1_DURATION * UNIT_DURATION * TASK_DURATION);
 	std::cout << "task_1 done" << std::endl;
 }
 
 void task2()
 {
 	std::cout << "task_2 start" << std::endl;
-	busy_wait(TASK_2_DURATION * UNIT_DURATION);
+	busy_wait(TASK_2_DURATION * UNIT_DURATION * TASK_DURATION);
 	std::cout << "task_2 done" << std::endl;
 }
 
 void task3()
 {
 	std::cout << "task_3 start" << std::endl;
-	busy_wait(TASK_3_DURATION * UNIT_DURATION / 2);
+	busy_wait(TASK_3_DURATION * UNIT_DURATION * TASK_DURATION / 2);
 
 	exec.ap_task_request();
 
-	busy_wait(TASK_3_DURATION * UNIT_DURATION / 2);
+	busy_wait(TASK_3_DURATION * UNIT_DURATION * TASK_DURATION / 2);
 	std::cout << "task_3 done" << std::endl;
 }
 
 void task4()
 {
 	std::cout << "task_4 start" << std::endl;
-	busy_wait(TASK_4_DURATION * UNIT_DURATION);
+	busy_wait(TASK_4_DURATION * UNIT_DURATION * TASK_DURATION);
 	std::cout << "task_4 done" << std::endl;
 }
 

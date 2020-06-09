@@ -2,7 +2,11 @@
 #include "executive.h"
 #include "busy_wait.h"
 
+//used to change unit duration of executive and tasks
 #define UNIT_DURATION 500
+
+//used to reduce the duration of the busy_wait to avoid deadline miss. We didn't use this constant in this case since in this example we want to see if the executive handle the deadline misses in the right way
+#define TASK_DURATION 0.9
 
 #define TASK_0_DURATION 1	// tau_1
 #define TASK_1_DURATION 2	// tau_2
@@ -33,7 +37,11 @@ void task1()
 void task2()
 {
 	std::cout << "task_2 start" << std::endl;
-	busy_wait(TASK_2_DURATION * UNIT_DURATION);
+	busy_wait(TASK_2_DURATION * UNIT_DURATION / 2);
+    
+    exec.ap_task_request();
+    
+    busy_wait(TASK_2_DURATION * UNIT_DURATION / 2);
 	std::cout << "task_2 done" << std::endl;
 }
 
@@ -55,7 +63,7 @@ void task4()
 void ap_task()
 {
 	std::cout << "task_ap start" << std::endl;	
-	busy_wait(TASK_AP_DURATION * UNIT_DURATION);
+	busy_wait(TASK_AP_DURATION * UNIT_DURATION * TASK_DURATION );
 	std::cout << "task_ap done" << std::endl;
 }
 
